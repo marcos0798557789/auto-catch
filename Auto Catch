@@ -1,0 +1,97 @@
+-- AUTO CATCH COM INTERFACE DE LIGA/DESLIGA
+
+local uis = game:GetService("UserInputService")
+local plr = game.Players.LocalPlayer
+local mouse = plr:GetMouse()
+local gui
+
+local spamClicks = false
+local autoCatchOn = false
+
+local catchKeys = {
+    [Enum.KeyCode.Q] = true,
+    [Enum.KeyCode.E] = true,
+    [Enum.KeyCode.Z] = true,
+    [Enum.KeyCode.C] = true,
+}
+
+-- GUI
+function createAutoCatchGUI()
+    if gui then gui:Destroy() end
+    gui = Instance.new("ScreenGui", game.CoreGui)
+    gui.Name = "AutoCatchToggle"
+    local frame = Instance.new("Frame", gui)
+    frame.Size = UDim2.new(0, 180, 0, 58)
+    frame.Position = UDim2.new(0.045,0, 0.29,0)
+    frame.BackgroundColor3 = Color3.fromRGB(28,34,56)
+    frame.BackgroundTransparency = 0.12
+    frame.BorderSizePixel = 0
+
+    local title = Instance.new("TextLabel", frame)
+    title.Text = "Auto Catch"
+    title.Size = UDim2.new(1,0,0,20)
+    title.BackgroundTransparency = 1
+    title.TextColor3 = Color3.fromRGB(255,245,110)
+    title.Font = Enum.Font.GothamBold
+    title.TextSize = 16
+
+    local toggle = Instance.new("TextButton", frame)
+    toggle.Size = UDim2.new(0,108,0,27)
+    toggle.Position = UDim2.new(0.23,0,0.49,0)
+    toggle.BackgroundColor3 = autoCatchOn and Color3.fromRGB(60,210,80) or Color3.fromRGB(170,70,25)
+    toggle.Text = autoCatchOn and "LIGADO" or "DESLIGADO"
+    toggle.TextColor3 = Color3.fromRGB(255,255,255)
+    toggle.Font = Enum.Font.GothamBold
+    toggle.TextSize = 15
+    toggle.BorderSizePixel = 0
+
+    local info = Instance.new("TextLabel", frame)
+    info.Text = "Q/E/Z/C = Spammar Mouse1"
+    info.Size = UDim2.new(1,0,0,15)
+    info.Position = UDim2.new(0,0,1,-16)
+    info.BackgroundTransparency = 1
+    info.Font = Enum.Font.Gotham
+    info.TextSize = 11
+    info.TextColor3 = Color3.fromRGB(190,210,210)
+
+    toggle.MouseButton1Click:Connect(function()
+        autoCatchOn = not autoCatchOn
+        toggle.Text = autoCatchOn and "LIGADO" or "DESLIGADO"
+        toggle.BackgroundColor3 = autoCatchOn and Color3.fromRGB(60,210,80) or Color3.fromRGB(170,70,25)
+    end)
+end
+
+createAutoCatchGUI()
+
+uis.InputBegan:Connect(function(inp)
+    if autoCatchOn and catchKeys[inp.KeyCode] then
+        spamClicks = true
+    end
+end)
+uis.InputEnded:Connect(function(inp)
+    if autoCatchOn and catchKeys[inp.KeyCode] then
+        spamClicks = false
+    end
+end)
+
+local exploitSupportsPressRelease = (typeof(mouse1press)=="function") and (typeof(mouse1release)=="function")
+spawn(function()
+    while true do
+        if autoCatchOn and spamClicks then
+            if exploitSupportsPressRelease then
+                mouse1press()
+                wait(0.03)
+                mouse1release()
+            else
+                mouse1click()
+            end
+        end
+        wait(0.04)
+    end
+end)
+
+-- Mantém a GUI no respawn (personagem morto)
+plr.CharacterAdded:Connect(function()
+    wait(1)
+    createAutoCatchGUI()
+end)
